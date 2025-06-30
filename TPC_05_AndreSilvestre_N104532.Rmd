@@ -1,0 +1,163 @@
+---
+title: 'TPC 5: Variáveis Aleatórias - Turma 1'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## André Filipe Gomes Silvestre Nº104532 CDB1
+
+---
+
+## Exercício
+
+### 1. 
+
+Sabe-se que nos municípios de uma certa região turística, 40% mais que duplicam a sua população nos meses de verão.
+
+Suponha que o **acréscimo no consumo de água por cada turista alojado, por dia**, pode ser descrito através de uma 
+variável aleatória com distribuição Normal, de média $0,50 m^3$ e desvio-padrão $0,05 \; m^3$.
+
+a) Qual a probabilidade do acréscimo no consumo, por turista e por dia, ser inferior a $0,437 \; m^3$?
+
+b) Calcule o maior acréscimo de consumo dos $25%$ menores acréscimos.
+
+c) Numa certa unidade de turismo rural casa, a capacidade é de 20 hóspedes. Considerando um momento em que a unidade está totalmente cheia, qual a probabilidade do consumo de água diário aumentar em pelo menos $10,75 \; m^3$?
+
+d) Em relação à casa de turismo rural da alínea anterior:
+
+- i) Simule **uma** observação do acréscimo de consumo de água de 20 hóspedes dessa casa de turismo rural. Pretende-se que simule o acréscimo de consumo gerado por cada um desses 20 hóspedes, e que reporte os acréscimos individuais e o acréscimo total (soma dos acréscimos) para esta simulação.
+
+- ii) Simule **1000** observações nas mesmas condições, guardando **apenas** a soma para cada uma delas, e, com base nessa simulação, estime a probabilidade que calculou de forma exata em *c)*
+
+
+---
+
+\newpage
+
+# 1. Resolução
+
+## a)
+
+Seja $X =$ *consumo de água acrescido por cada turista alojado, por dia* a variável aleatória de interesse,
+
+com parâmetros $\mu= 0.5$ (média) e $\sigma = 0.05$ (desvio-padrão), a sua distribuição normal é dada por
+
+$$X \sim N(\mu= 0.5,\;\sigma = 0.05)$$
+
+Logo, a *probabilidade do acréscimo no consumo, por turista e por dia, ser inferior a $0,437 m^3$* dada por $P[X<0.437]$ pode ser obtida da seguinte forma
+
+```{r}
+# Probabilidade do acréscimo no consumo, por turista e por dia, ser inferior a 0,437 m3 -> P[X<0.437]
+pnorm(0.437,0.5,0.05)
+```
+
+## b)
+
+Mantendo-se as condições e inferências da alínea anterior, *o maior acréscimo de consumo dos 25% menores acréscimos* é o dado pelo $Q1$ em que  $q_{0.25} : P[X\le q_{0.25}] = 0.25$ da distribuição normal, pelo que é dado por
+
+```{r}
+# Maior acréscimo de consumo dos 25% menores acréscimos -> Q1
+qnorm(0.25,0.5, 0.05,lower.tail =TRUE)
+```
+
+## c)
+
+Dado que *numa certa unidade de turismo rural, a capacidade é de 20 hóspedes.* podemos através do **TAN** (Teorema da Aditividade da Normal)
+
+considerar **$X_i =$** *acréscimo no consumo de água de um hóspede* ***i*** *, por dia* uma variável ***iid*** e **$X_T =$** *acréscimo total no consumo de água dos hóspede dessa unidade de turismo rural*
+
+então, 
+
+$$X_T = \sum_{i=1}^{20} X_{i}\sim N  (\mu_{T}=n \mu, \sigma_{T}=\sigma \sqrt{n})\;\;\;\;\; com \;\;\;\; n=20$$
+
+ou seja, $\mu_{T}=20 	\times \mu = 20 	\times0.5 =10$ e $\sigma_{T}=\sigma \sqrt{20} = 0.05\sqrt{20}$ 
+
+Logo, a *probabilidade do consumo de água diário aumentar em pelo menos $10,75 m^3$* é dada por $P[X_T \ge 10.75]$
+
+```{r}
+# Probabilidade do consumo de água diário aumentar em pelo menos 10,75 m3 -> P[XT >= 10.75]
+round(pnorm(10.75,20*0.5,0.05*sqrt(20),lower.tail=FALSE),6)
+```
+
+## d)
+
+Mantendo a distribuição normal resultante do *Teorema da Aditividade da Normal* da alínea anterior,
+
+#### i)
+
+A *simulação de uma observação do acréscimo de consumo de água de 20 hóspedes dessa casa de turismo rural* é dada por
+
+```{r}
+# Simulação de uma observação do acréscimo de consumo de água de 20 hóspedes
+simul_1 <- rnorm(20,0.5,0.05)
+
+# Acréscimo individual de consumo gerado por cada um desses 20 hóspedes
+simul_1
+# Acréscimo total (soma dos acréscimos) de consumo gerado por cada um desses 20 hóspedes
+round(sum(simul_1),2)
+```
+
+
+#### ii)
+
+A *simulação de  1000 observações nas mesmas condições, guardando apenas a soma para cada uma delas* é obtida através de
+
+```{r}
+# Simulação de 1000 observação 
+simul2 <- replicate(1000,sum(rnorm(20,0.5,0.05)))
+```
+
+### EXTRA
+
+Distribuição dos totais observados:
+
+```{r fig.align='center',out.width="80%"}
+miuT<-20*0.5
+sigmaT<-0.05*sqrt(20)
+
+hist(simul2,
+     freq = FALSE,
+     breaks=50,
+     ylim = c(0,2),
+     col="turquoise")
+
+curve(dnorm(x,miuT,sigmaT),
+      col="dark blue",
+      lwd=3,
+      add = TRUE)
+
+legend("topleft",
+       legend = c("amostra","teórica(TAN)"),
+       col = c("turquoise","dark blue"),
+       lwd=3,
+       bty = "n")
+```
+
+A amostra (das somas) apresenta média e desvio-padrão em linha com os valores teoricamente deduzidos acima.
+```{r}
+medidas<-rbind(c(miuT,mean(simul2)),
+c(sigmaT,sd(simul2)))
+medidas<-round(as.table(medidas),4)
+rownames(medidas)<-c("Média","Desvio-padrão")
+colnames(medidas)<-c("TAN","Amostral,n=1000")
+
+library(knitr)
+kable(medidas)
+```
+
+
+### Probabilidade de c)
+
+Pretende-se obter uma aproximação a $P[XT \ge 10.75]$ a partir da simulação efetuada.
+
+Pelo que se observa acima, a $P[XT \ge 10.75]$ deverá estar muito próximo de $0$, ou ser mesmo esse valor (caso não existam observações nas condições indicadas).
+
+```{r}
+# Probabilidade do consumo de água diário aumentar em pelo menos 10,75 m3 -> P[XT >= 10.75]
+mean((simul2 >= 10.75))
+```
+
+

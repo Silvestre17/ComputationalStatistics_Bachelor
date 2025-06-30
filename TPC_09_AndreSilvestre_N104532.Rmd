@@ -1,0 +1,275 @@
+---
+title: 'TPC 9 Teste de Hipóteses - Qui-Quadrado'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE) 
+knitr::opts_chunk$set(message = FALSE)
+suppressMessages(library(dplyr, warn.conflict = FALSE, quietly = TRUE))
+```
+
+## André Filipe Gomes Silvestre Nº104532 CDB1
+
+---
+
+## Exercício
+
+Num inquérito sobre óculos de sol foram colocadas várias questões aos inquiridos. Para além de características sociodemográficas (Type, idade e nível de educação), perguntou-se o tipo de óculos de sol que possuíam, quando tinham sido adquiridos, onde tinham sido adquiridos, quanto tinham custado e se eram da marca *SoleMio(SM/RB)*.
+
+Para este TPC, irão apenas analisar duas questões: **1.** O “estilo dos óculos de sol” – variável *type*; e, **2.** a questão *are_RB*, que indica se os óculos são ou não da marca *SoleMio*.
+
+Pretende-se saber se existe associação entre o estilo dos óculos de sol e o facto de serem da marca RB.
+
+Seguir os seguintes passos:
+
+1. Construir a tabela de contingência com as frequências absolutas, com o estilo em linha e a marca em coluna; adicionar as margens à tabela.
+
+2. Obter a tabela de contingência com as frequências relativas por coluna (distribuição das respostas para o estilo, no grupo dos óculos RB e no grupo dos óculos Não RB)
+
+3. Representar graficamente a informação
+
+4. Definir as hipóteses em teste e identificar a estatística de teste
+
+5. Obter os resultados do teste
+
+6. Mostrar a tabela dos resíduos estandardizados e identificar as associações relevantes.
+
+7. Escrever parágrafo final que resuma os resultados encontrados em 1-6 e responda à questão colocada: saber se existe associação entre o estilo dos óculos de sol e o facto de serem da marca RB (e de que forma)
+
+**Nota:** Os dados estão guardados num ficheiro de formato RDS, "Estudo_Oculos_Sol.rds". Para lerem os dados devem usar a função “readRDS”.
+
+```{r}
+# Leitura do ficheiro Estudo_Oculos_Sol.rds
+bd_oculos_sol <-readRDS("Estudo_Oculos_Sol.rds")
+```
+
+---
+
+
+\newpage
+
+## Resolução
+
+## 1. Tabela de contingência com as **Frequências Absolutas**
+Com o estilo em linha e a marca em coluna
+
+```{r}
+tab1<-table(bd_oculos_sol$type,bd_oculos_sol$are_RB)  # crosstabs freq abs
+                                                      # var1 em linha
+                                                      # var2 em coluna
+# Tabela com margens
+# tab1_sum <- addmargins(tab1,margin = seq_along(dim(tab1)), FUN = sum)
+```
+
+```{r include=FALSE}
+# Tabela com margens
+tab1_sum <- addmargins(tab1,margin = seq_along(dim(tab1)), FUN = sum)
+```
+
+```{r}
+knitr::kable(tab1_sum,format="markdown",digits=3)
+```
+
+---
+
+## 2. Tabela de contingência com as **Frequências Relativas** por coluna
+Distribuição das respostas para o estilo, no grupo dos óculos RB e no grupo dos óculos Não RB
+
+```{r}
+tab1_prop <- prop.table(tab1) # freq relativas
+```
+
+
+```{r include=FALSE}
+# Frequências relativas com margens
+tab1_propsum <- addmargins(tab1_prop, FUN = sum)
+
+# Tabela com frequências relativas por Type (soma 1 em linha)
+tab1_byType <- prop.table(tab1,margin = 1)  # freq relativas
+                                            # margin=1 --> em linha
+
+# para gráfico tem de ser em coluna
+tab1_byType_col<-t(tab1_byType)
+tab1_byType_col_propsum <- addmargins(tab1_byType_col, FUN = sum)
+```
+
+
+```{r eval=FALSE}
+# Frequências relativas com margens
+tab1_propsum <- addmargins(tab1_prop, FUN = sum)
+```
+
+```{r}
+knitr::kable(t(tab1_propsum),format="markdown",digits=3)
+```
+
+```{r eval=FALSE}
+# Tabela com frequências relativas por Type (soma 1 em linha)
+tab1_byType <- prop.table(tab1,margin = 1)  # freq relativas
+                                            # margin = 1 --> em linha
+ 
+# para gráfico tem de ser em coluna
+tab1_byType_col<-t(tab1_byType)
+tab1_byType_col_propsum <- addmargins(tab1_byType_col, FUN = sum)
+```
+
+
+## 3. Representação Gráfica 
+
+
+```{r out.width='48%', fig.show='hold', fig.align='center'}
+cores<-c('#ff4040','#2e8b57')
+
+# preparar a área
+plot(1,               
+     xlim = c(0,2.5), ylim = c(0,1), 
+     type = "n",                           # vazio
+     main = "Gráfico Type por Are_RB",     # título
+     ylab = "", xlab = "",                 # sem nomes
+     xaxt = "n")                           # sem marcas eixo x
+
+
+barplot(tab1_byType_col,              # att dados org em colunas       
+        col =cores,                   # cores a usar
+        width = 0.45,                  # largura das barras
+        add=TRUE)                     # para dar espaço p legenda
+        
+legend("topright",
+       legend = rownames(tab1_byType_col),
+       pch = 15,
+       col = cores)
+
+# Representação gráfica - are_RB por type ------------------------------------
+# preparar a área
+tab1_by_areRB <- prop.table(tab1,margin = 2)
+
+cores<-c("#0047ab","#5f9ea0","#ed872d", "#954535")
+plot(1,               
+     xlim = c(0,2.5), ylim = c(0,1), 
+     type = "n",                         # vazio
+     main = "Gráfico Are_RB por Type",   # título
+     ylab = "", xlab = "",               # sem nomes
+     xaxt = "n")                         # sem marcas eixo x
+
+
+barplot(tab1_by_areRB,                   # att dados org em colunas       
+        col =cores,                      # cores a usar
+        width = 0.8,                     # largura das barras
+        # para dar espaço p legenda
+        add=TRUE)
+
+legend("topright",
+       legend = rownames(tab1_by_areRB),
+       pch = 15,
+       col = cores)
+```
+
+---
+
+## 4. Hipóteses em teste + Estatística de teste
+
+X - Estilo de Óculos de Sol (variável *type*)
+
+Y - São ou Não da marca *SoleMio* (variável *are_RB*)
+
+### Hipóteses em teste
+
+> $H_0:$ O estilo de óculos de sol é independente da marca RB 
+
+> $H_1:$ Existe relacionamento entre o estilo de óculos de sol e a marca RB 
+
+ou, teoricamente,
+
+> $H_0:\forall(i, j) \in\{1: r\} \times\{1: c\}: p_{i j}=p_{i .} \times p_{. j}$
+
+> $H_1: \exists(i, j) \in\{1: r\} \times\{1: c\}: p_{i j} \neq p_{i .} \times p_{\cdot j}$
+
+### Teste Qui-Quadrado
+
+**Estatística de teste**
+
+$$E T=\sum_{i=1}^3 \sum_{j=1}^3 \frac{\left(o_{i j}-e_{i j}\right)^2}{e_{i j}} \; \dot\sim \; \chi_{(r-1)(c-1)}^2$$
+
+Sendo ambas variáveis fatores, o estudo do relacionamento entre elas será feito através da análise do respetivo
+cruzamento (tabela de contingência), com a subsequente aplicação do **Teste Qui-quadrado de Pearson**.
+
+\newpage
+
+## 5. Testar a independência das variáveis *type* e *are_RB*
+
+### Teste Qui-Quadrado $\chi^2$
+
+```{r}
+teste<-chisq.test(tab1)
+teste
+```
+
+Tabela com **Frequências Absolutas** VS **Frequências Absolutas Esperadas**
+
+```{r}
+tab1_esperadas<-teste$expected
+# tab1_esperadas_ <- addmargins(tab1_esperadas, FUN = sum)
+```
+
+```{r include=FALSE}
+tab1_esperadas_ <- addmargins(tab1_esperadas, FUN = sum)
+```
+
+```{r, echo=FALSE, results='asis'}
+library(knitr)
+library(xtable)
+
+t1 <- kable(tab1_sum, format = "latex", booktabs = TRUE,digits=3)
+t2 <- kable(tab1_esperadas_, format = "latex", booktabs = TRUE,digits=3)
+
+cat(c("\\begin{table}[!htb]
+    \\begin{minipage}{.5\\linewidth}
+      \\centering",
+        t1,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering",
+        t2,
+    "\\end{minipage} 
+\\end{table}"
+)) 
+```
+
+## 6. e 7.
+
+Tabela com **Resíduos de Pearson** (teste[residuals]) e **Resíduos Estandardizados** (teste[stdres])
+
+```{r, echo=FALSE, results='asis'}
+library(knitr)
+library(xtable)
+
+t1 <- kable(teste$residuals, format = "latex", booktabs = TRUE,digits=3)
+t2 <- kable(teste$stdres, format = "latex", booktabs = TRUE,digits=3)
+
+cat(c("\\begin{table}[!htb]
+    \\begin{minipage}{.5\\linewidth}
+      \\centering",
+        t1,
+    "\\end{minipage}%
+    \\begin{minipage}{.5\\linewidth}
+      \\centering",
+        t2,
+    "\\end{minipage} 
+\\end{table}"
+))  
+```
+
+> Como $p-value = `r teste$p.value` < \alpha$ de referência ($\alpha=0.05$), então rejeita-se a $H_0$.
+
+Ou seja, existe evidência estatística que revele associação entre o estilo dos óculos de sol e o facto de serem da marca RB, isto é, relacionamento entre as variáveis.
+
+> Isto significa que existem divergências significativas entre as frequências observadas e as frequências esperadas (ou seja, o que esperaríamos observar numa situação de independência). 
+
+
+**TC** 
+
+**Forma do Relacionamento:** Valores Estandardizados acima de (aprox) 2: associações
+
+> Os óculos *Solemio* associam-se a estilo *clássico*; outras marcas de óculos associam-se a estilo *moderno* (valores destacados no quadro dos resíduos) isto é também visível e interpretável a partir dos gráficos, em especial o da direita.

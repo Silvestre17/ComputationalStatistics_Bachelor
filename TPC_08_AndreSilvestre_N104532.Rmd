@@ -1,0 +1,340 @@
+---
+title: 'TPC 8: Teste de Hipóteses - Turmas 1 e 2'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## André Filipe Gomes Silvestre Nº104532 CDB1
+
+---
+
+## Exercício
+
+Num inquérito sobre óculos de sol foram colocadas várias questões aos inquiridos. Para além de características sociodemográficas (sexo, idade e nível de educação), perguntou-se o tipo de óculos de sol que possuíam, quando tinham sido adquiridos, onde tinham sido adquiridos, quanto tinham custado e se eram da marca *SoleMio(SM/RB)*.
+
+Para além destas questões, ainda foram colocadas outras que originaram a construção de um conjunto de indicadores, cada um numa escala contínua de 0 a 10 – fatores que influenciam a compra de óculos de sol.
+
+Para este TPC, irão apenas analisar duas questões: **1.** O indicador *“Importância do Preço na compra de óculos de sol”* – variável ***Price***; e, **2.** a questão ***“are_RB”***, que indica se os óculos são ou não da marca *SoleMio*
+
+Os “Fatores que influenciam a compra de óculos de sol” são variáveis que assumem valores reais no intervalo 0-10, onde 0 corresponde a “nada importante” e 10 corresponde a “extremamente importante”.
+
+1. Será que a importância concedida ao preço está, em termos médios, acima do ponto intermédio da escala (i.e. 5)?
+
+2. Será que homens e mulheres diferem, em termos médios, na importância concedida ao preço? 
+(Suponha que as variâncias do preço nos dois grupos, embora sejam desconhecidas, podem ser consideradas iguais)
+
+> Responda a estas questões através da aplicação e interpretação de um teste de hipóteses adequado.
+
+>> Defina as populações em análise e os parâmetros de interesse. 
+
+>> Siga os passos indicados nos slides (Etapas de um teste de hipóteses). 
+
+>> Considere uma **significância de referência, $\alpha$, de 5%**.
+
+---
+
+\newpage
+
+## Resolução
+
+# 1.
+
+```{r}
+# Leitura do ficheiro Estudo_Oculos_Sol.rds
+bd_oculos_sol <-readRDS("Estudo_Oculos_Sol.rds")
+```
+
+No caso em estudo, a população em análise é
+
+> **$X$ -** Importância concedida, pelos inquiridos, ao Preço enquanto fator determinante na compra de óculos de sol (variável *Price*)
+
+E o parâmetro de interesse é
+
+> **$\mu$** (*importância concedida ao preço, em termos médios*)
+
+(**TC $\rightarrow$** A afirmação é *"a importância concedida ao preço está, em termos médios, acima do ponto intermédio da escala"*, ou seja $\mu > 5$, pelo que esta será a **hipótese alternativa** (não tem **=**))
+
+&nbsp;
+&nbsp;
+
+Dado que a Questão Problema é *Será que a importância concedida ao preço está, em termos médios, acima do ponto intermédio da escala (i.e. 5)*, podemos definir as hipóteses como:
+
+- $H_0: \mu \le 5$ (hipótese nula) 
+ 
+> Ou seja, a importância média concedida ao preço é, no máximo, igual ao ponto intermédio da escala.
+
+- $H_1: \mu > 5$ (hipótese alternativa) 
+
+> Ou seja, a importância concedida ao preço está, em termos médios, acima do ponto intermédio da escala.
+
+Logo este Teste de Hipóteses é **Unilateral Direito**
+
+Pelo que, sendo $n= `r nrow(bd_oculos_sol)`$ e não conhecendo $\sigma^2$, a $VF$ a usar é 
+
+$$VF=\frac {\overline X - \mu_0}{\frac{S'}{\sqrt{n}}}  \sim N{(0,1)}$$
+
+(**TC -** Podemos tomar decisões quer identificando a Região Crítica e a Região Não Crítica, com base no $\alpha$ dado (0.05), quer calculando (ou lendo, se usarmos o *t.test*) o *p-value* após termos obtido o valor concreto da ET para este caso, comparando-o com o $\alpha$.)
+
+\newpage
+
+Considerando $\alpha = 0.05$ (*significância de 5%*) as regiões serão
+
+```{r, out.width="70%", fig.align='center'}
+eixo_x<-c(-4,4)
+eixo_y<-c(0,dnorm(0))
+
+# Preparar o Espaço
+plot(1,
+     xlim = eixo_x, ylim = eixo_y,
+     type = "n",
+     main = "ET",
+     ylab = "f.d.p", xlab = "")
+
+# Add x and y-axis lines
+abline(h = 0, col="grey")
+abline(v = 0, col="grey")
+
+# Desenhar a Função
+curve(dnorm(x),
+      from = eixo_x[1], to = eixo_x[2],
+      n = 1000,
+      col = "darkblue",
+      lwd = 2,
+      add=TRUE)
+
+# Sombrear a área da RC
+zcrit<-qnorm(0.05,lower.tail = FALSE)
+
+x1 <- seq(zcrit,eixo_x[2],0.01) # sequência de pontos, separados por 0.01
+                                # a começar em zcrit e até ao extremo direito
+y1 <- dnorm(x1)                 # imagem desses x
+
+coord_x <- c(zcrit,x1,eixo_x[2])
+coord_y <- c(0,y1,0)
+polygon(coord_x,coord_y,col='blue')
+text(x=2,
+     y=.06,
+     labels=paste("alfa=",0.05),
+     adj=c(0,0),
+     col="darkblue")
+
+axis(1,at=zcrit,labels = round(zcrit,3),col.ticks = "darkred",lwd.ticks = 2)
+mtext("RC",side=1,line=2.5,at=2)
+```
+
+Temos então
+
+$${RC}=[`r round(zcrit,2)`, + \infty[ \quad \quad\quad e \quad\quad\quad {RNC}= ]-\infty, `r round(zcrit,2)`[$$
+
+Cálculo da Estatística de Teste (**ET**)
+
+```{r}
+#Definição da RC e da RNC
+significancia = 0.05
+
+RC <- qnorm(1-significancia)
+
+# Cálculo do valor do teste
+H0 <- 5
+
+# Calcular a média, variância amostral e dimensão da amostra
+# (tudo o que precisamos para ter o teste t)
+media <- mean(bd_oculos_sol$Price)       # Média da Variável
+n <- length(bd_oculos_sol$Price)         # Dimensão da Amostra
+dp <- sd(bd_oculos_sol$Price)            # Desvio-Padrão da Variável
+```
+
+```{r include=FALSE}
+require(flextable)
+```
+
+```{r echo=FALSE}
+ftable_1 <- flextable(data.frame("Média" = round(media,2) , "DP" = round(dp,2), "n" = n))
+
+ftable_1 <- bg(ftable_1, bg = "#ff4500", part = "header")
+ftable_1 <- bold(ftable_1, bold = TRUE, part = "header")
+ftable_1 <- color(ftable_1, color = "white", part = "header")
+ftable_1 <- set_header_labels(ftable_1, Média= 'Média Amostral',DP = 'DP Amostral', n = 'n')
+ftable_1 <- autofit(ftable_1)
+
+set_flextable_defaults(fonts_ignore=TRUE)
+
+ftable_1
+```
+
+
+```{r}
+# Alternativa 1: Calcular ET e usar RC e RNC
+erro <- dp/sqrt(n)                # Erro Padrão do Estimador
+ET <- (media - H0)/erro           # Estatística de Teste
+ET
+```
+
+```{r}
+# Alternativa 2: Calcular p-value
+p_value <- pnorm(ET,lower.tail = FALSE)  # porque Teste à Direita
+p_value 
+# = 0 -> O que não é de estranhar visto a ET ter um valor extremamente grande.
+```
+
+```{r}
+# Alternativa 3: Fazer o t.test
+teste1 <- t.test(bd_oculos_sol$Price,alternative = "greater", mu = 5,
+                 conf.level = 1-significancia)
+teste1
+```
+
+Como o teste é **Unilateral Direito**, e $ET \sim N(0,1)$, o ponto fronteira entre $RC$ e $RNC$ é o quantil de probabilidade $1 - \alpha = 1 - 0.05 = 0.95$ de uma normal standard, $z_{crit} = `r round(RC,2)`$
+
+Logo, temos que 
+
+$${RC}=[`r round(RC,2)`, + \infty[ \quad \quad\quad e \quad\quad\quad {RNC}= ]-\infty, `r round(RC,2)`[$$
+
+> $\therefore z = `r round(ET,2)` \in {RC}$, então rejeitamos $H_0$, para o nível de significância $\alpha = 0.05$
+
+***OU***
+
+> $\therefore$ Como $pvalue \simeq$ `r p_value` $\le \alpha = 0.05$, logo rejeitamos $H_0$
+
+>> No contexto do problema, rejeitar $H_0$ significa que, com uma significância de 5%, a verdadeira importância concedida, pelos inquiridos, ao preço na compra de óculos de sol está, em termos médios, acima do ponto intermédio da escala ($> 5$)
+
+---
+
+\newpage
+
+# 2.
+
+No 2º caso em estudo, a população em análise mantém-se
+
+> **$X$ -** Importância concedida, pelos inquiridos, ao Preço na compra de óculos de sol (variável *Price*)
+
+Porém, agora dividimos consoante o sexo
+
+> **$X_H$ -** Importância concedida, pelos Homens, ao Preço na compra de óculos de sol
+
+> **$X_M$ -** Importância concedida, pelas Mulheres, ao Preço na compra de óculos de sol
+
+Em que 
+
+$$ X_H \sim N(\mu_H,\sigma_H) \quad e \quad X_M \sim N(\mu_M,\sigma_M)$$
+
+E o parâmetro de interesse é
+
+- $\mu_H \;-\; \mu_M$ ($H-$Homem e $M-$Mulher)
+
+> Em que consideramos $\sigma^2_H \;=\; \sigma^2_M$
+
+Dado que a Questão Problema é *Será que homens e mulheres diferem, em termos médios, na importância concedida ao preço?*, podemos definir as hipóteses como:
+
+- $H_0: \mu_H\ = \mu_M\;\; \Leftrightarrow \;\;\mu_H-\mu_M = 0$ (hipótese nula)
+
+> Ou seja, a importância média concedida ao preço é igual para homens e mulheres.
+
+- $H_1: \mu_H \ne \mu_M\;\; \Leftrightarrow \;\;\mu_H-\mu_M \ne 0$ (hipótese alternativa)
+
+> Ou seja, a importância média concedida ao preço não é a mesma para homens e mulheres.
+
+Logo este Teste de Hipóteses é **Bilateral**
+
+Pelo que, sendo $n_1+n_2= `r nrow(bd_oculos_sol)` >30$ e não conhecendo $\sigma^2$, mas assume-se $\sigma^2_H \;=\; \sigma^2_M$, a $VF$ a usar é 
+
+$$VF=\frac{\left({\bar{X}}_1-{\bar{X}}_2\right)-\left(\mu_1-\mu_2\right)_0}{\sqrt{\frac{1}{n_1}+\frac{1}{n_2}}\sqrt{\frac{{\left(n_1-1\right)s}_1^{\prime2}+{\left(n_2-1\right)s}_2^{\prime2}}{n_1+n_2-2}}}  \sim t_{(n_1+n_2-2)}$$
+
+Iremos considerar que a distribuição da $ET$ é $t_{(n1+n2-2)}$ e $\alpha = 0.05$ (*significância de 5%*)
+
+```{r}
+# Cálculos Amostrais
+med1 <- mean(bd_oculos_sol$Price[bd_oculos_sol$sex == "Male"])
+n1 <- length(bd_oculos_sol$Price[bd_oculos_sol$sex == "Male"])
+dp1 <- sd(bd_oculos_sol$Price[bd_oculos_sol$sex == "Male"])
+
+med2 <- mean(bd_oculos_sol$Price[bd_oculos_sol$sex == "Female"])
+n2 <- length(bd_oculos_sol$Price[bd_oculos_sol$sex == "Female"])
+dp2 <- sd(bd_oculos_sol$Price[bd_oculos_sol$sex == "Female"])
+```
+
+```{r echo=FALSE}
+ftable_2 <- flextable(data.frame('media1' = round(med1,2) , 'dp1' = round(dp1,2), 'n1' = n1))
+
+ftable_2 <- bg(ftable_2, bg = "#4169e1", part = "header")
+ftable_2 <- bold(ftable_2, bold = TRUE, part = "header")
+ftable_2 <- color(ftable_2, color = "white", part = "header")
+ftable_2 <- set_header_labels(ftable_2, media1 = 'Média Amostral H', dp1 = 'DP Amostral H', n1 = 'n H')
+ftable_2 <- autofit(ftable_2)
+
+ftable_2
+
+ftable_3 <- flextable(data.frame('media2' = round(med2,2) , 'dp2' = round(dp2,2), 'n2' = n2))
+
+ftable_3 <- bg(ftable_3, bg = "#fe4164", part = "header")
+ftable_3 <- bold(ftable_3, bold = TRUE, part = "header")
+ftable_3 <- color(ftable_3, color = "white", part = "header")
+ftable_3 <- set_header_labels(ftable_3, media2 = 'Média Amostral M', dp2 = 'DP Amostral M', n2 = 'n M')
+ftable_3 <- autofit(ftable_3)
+
+ftable_3
+```
+
+```{r}
+# -------------------------- Através do t.test --------------------------
+teste2 <- t.test(bd_oculos_sol$Price ~ bd_oculos_sol$sex,
+                 alternative = "two.sided", 
+                 mu = 0, 
+                 conf.level = 1- significancia,
+                 var.equal = TRUE)
+teste2
+```
+
+> $\therefore$ Como $pvalue =$ `r round(teste2$p.value,3)` $\; \le \; \alpha = 0.05$, logo rejeita-se $H_0$ (igualdade de médias) e aceita-se a alternativa
+
+> No contexto do problema, rejeitar $H_0$ significa que, com uma significância de 5%, existe evidência estatística que permite concluir que Homens e Mulheres dão, em termos médios, importância **diferente** ao Preço enquanto fator determinante na compra de óculos de Sol.
+
+
+\newpage
+
+## EXTRA
+
+```{r message=FALSE, warning=FALSE, out.width="80%", fig.align='center'}
+medias<-teste2$estimate
+
+plot(bd_oculos_sol$Price~bd_oculos_sol$sex)
+
+points (medias,
+        pch= 17,
+        col="darkred",
+        add=TRUE)
+
+legend("bottomright",
+       legend = "Médias dos grupos",
+       col = "darkred",
+       pch = 17)
+```
+
+É importante neste caso fazer a análise descritiva dos dados para perceber qual a tendência das diferenças.
+
+Como se pode ver no *output* obtido, na amostra observada, as mulheres dão menor importância média ao fator *Preço* do que os homens ($\overline x_M = 6.54,\;\; \overline x_H = 6.71$), contudo em ambos os casos acima do ponto intermédio da escala.
+
+Uma análise rápida do diagrama de extremos e quartis permite verificar que a divergência nas médias se deve
+provavelmente aos valores extremos:
+
+- A metade central das observações é basicamente idêntica nos dois grupos;
+- Os $25\%$ superiores espalham-se num intervalo mais amplo no grupo dos homens;
+- os $25\%$ inferiores revelam mais *outliers* no grupo das mulheres.
+
+
+\newpage
+
+## Validação do pressuposto $\sigma_1 = \sigma_2$ através de um Teste com Hipóteses
+
+- $H_0: \frac{\sigma_1^2}{\sigma_2^2} = 1$ 
+
+- $H_1: \frac{\sigma_1^2}{\sigma_2^2} \neq 1$
+
+```{r}
+var.test(bd_oculos_sol$Price  ~bd_oculos_sol$sex)
+```
+
+> Com um $p-value$ de $0.168$ e com $\alpha = 0.05$ não se rejeita a $H_0$ de igualdade de variâncias, o que valida a opção tomada no teste à comparação das médias.

@@ -1,0 +1,239 @@
+---
+title: 'TPC 4: Variáveis Aleatórias - Turma 1 (+ 2)'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## André Filipe Gomes Silvestre Nº104532 CDB1
+
+---
+
+## Exercício (Turma 2)
+
+Um analista político acredita que a privatização de alguns sectores estratégicos no domínio do sector público é um tema polémico e afirma que somente 40% dos indivíduos têm uma opinião favorável.
+
+Se um entrevistador conseguir contactar 200 pessoas numa semana qual a probabilidade de encontrar mais de 100 indivíduos com opinião favorável às privatizações, se o analista tiver razão quanto à incidência de opiniões favoráveis?
+
+Calcule esta probabilidade:
+
+- **i)** de forma exata, recorrendo a uma função r apropriada;
+- **ii)** de forma aproximada, através de uma simulação com 10000 repetições.
+
+## Resolução
+
+> **X -** número de pessoas em 200 que têm opinião favorável
+
+$$p = P[sucesso] = P[ter\;opinião\; favorável] = 0.4$$
+
+$$X \sim Bi(n = 200 , p = 0.4)$$
+
+Pretende-se $P[X > 100] = 1 - P[X \le 100]$
+
+**Opção i):**
+
+```{r}
+quantos<-200
+prob1<-0.4
+prob_1i<-pbinom(100,quantos,prob1,lower.tail = FALSE)
+round(prob_1i,4)
+```
+
+
+**Opção ii):**
+
+```{r}
+simula1<-rbinom(10000,size=quantos,prob = prob1)
+mean(simula1>100)
+```
+
+
+\newpage
+
+# TPC 4 (Turma 1)
+
+## Exercício
+
+### 1. 
+
+Considere que a procura diária, num certo supermercado, do novo artigo de limpeza, $X$, lançado no mês passado pela empresa TudoBrilha, pode ser modelizada através de uma variável aleatória com distribuição de Poisson de média 3,1.
+
+a) Qual a probabilidade de, num dia, a procura de $X$ ser no máximo 3?
+
+b) Qual a probabilidade de, numa semana (7 dias) a procura ser no mínimo 22?
+
+c) Qual a probabilidade de, em 7 dias, ocorrerem no máximo 4 dias onde a procura diária é no máximo 3?
+
+**Em cada alínea**
+
+1. Defina teoricamente a variável aleatória de interesse
+2. Especifique teoricamente o modelo probabilístico em causa
+3. Explicite teoricamente a probabilidade pedida
+4. Calcule a probabilidade pedida, recorrendo a funções R apropriadas.
+
+### 2. 
+
+Certa fábrica possui um depósito de combustível que é completamente atestado no primeiro dia de cada mês. O volume de combustível (em milhões de litros) consumido mensalmente nessa fábrica é uma variável aleatória com a seguinte função densidade: $f(x)=3(1-x)^2, \quad 0<x<1$.
+
+a) Represente graficamente a função densidade indicada.
+
+b) Qual a probabilidade de, em certo mês, o consumo se situar entre 0,2 e 0,8 milhões de litros?
+
+c) Calcule o consumo médio mensal.
+
+- **Dica:** recorra à função *integrate* do R sempre que necessário.
+
+---
+
+\newpage
+
+## 1. Resolução
+
+Primeiramente, formalizamos o modelo de *Poisson* a estudar.
+
+Assim, seja **$X \sim$** procura diária, num certo supermercado, do novo artigo de limpeza, $X$, lançado no mês passado pela empresa TudoBrilha,
+
+podemos definir como sendo 
+
+$$X \sim Po(\lambda = 3,1)$$
+
+Logo,
+
+$$f(x)=\frac{e^{-3,1} 3,1^x}{x !}$$
+
+#### a)
+
+Sendo probabilidade de, num dia, a procura de $X$ ser no máximo 3, dada por $P[X \le 3]$
+
+e seja $\lambda_X = 3,1$ - em média, 3.1 unidades do produto são procurados em 1 dia
+
+Assim sendo, a probabilidade solicitado pode ser obtido por:
+
+```{r}
+round(ppois(3, lambda = 3.1),4)
+```
+
+---
+
+#### b)
+
+Seja $X_2 -$ Procura semanal (7 dias), num certo supermercado, do novo artigo de limpeza da TudoBrilha
+
+A probabilidade de, numa semana a procura ser no mínimo 22, é dada por $P[X_2 \ge 22]$
+
+$$\begin{array}{ll}
+                  1 (dia) 	\cdots\cdots 3.1 (produtos) \\
+                  7 (dias) 	\cdots\cdots \lambda_{X_2} (produtos) \\
+\end{array}$$
+
+Logo, $lambda_{X_2} =$ `r 3.1*7/1` - em média, 21.7 unidades do produto são procurados em 1 semana (7 dias)
+
+(**TC** - Pela proporcionalidade de efeitos, $\lambda_2 = 7 \times 3.1 = 21.7$)
+
+Assim sendo, a probabilidade solicitado pode ser obtido por:
+
+$$P[X_2 \ge 22] = 1 - P[X_2 < 22] = 1 - P[X_2 \le 21]$$
+
+```{r}
+# 1 - ppois(21, lambda = 21) OU
+round(ppois(21, lambda = 21.7, lower.tail = FALSE), 4)
+```
+
+\newpage
+
+### c)
+
+Seja $X_3 -$ Número de dias, em 7, onde a procura é no máximo 3
+
+A probabilidade de, em 7 dias, ocorrerem no máximo 4 dias onde a procura diária é no máximo 3, simbolicamente representado por $P[X_3 \le 4]]$
+
+```{r}
+# Parâmetros de Z - n=7 (dias) e p = ? 
+
+#(Probabilidade de, em 7 dias, a procura diária é no máximo 3)
+p_X1 <- ppois(3, 3.1)  
+p_X1                     # a)
+```
+
+onde 
+
+$$X_3 \sim Bi(n=7, p=0.625)$$
+
+Assim sendo, a probabilidade solicitado pode ser obtido por:
+
+```{r}
+pbinom(4, size = 7, prob = p_X1)
+```
+
+---
+
+\newpage
+
+## 2. Resolução
+
+$$f(x)=   \left \{
+            \begin{array}{ll}
+                  3(1-x)^2 & 0<x<1 \\
+                  0 & outros.valores \\
+\end{array} 
+\right.$$
+
+### a)
+
+> **X -** Consumo mensal de combustível (milhões $m^3$)
+
+```{r}
+#Em primeiro lugar definir a função
+fx = function(x){(x< 0)*0 +(0<=x & x<=1)*(3*(1-x)^2)+(x>1)*0}
+``` 
+
+```{r fig1, fig.align='center',out.width="80%"}
+# Criar o gráfico em causa
+# curve(f_x,n=10001,from=0,to=1) OU
+plot(fx, -0.5, 1.5,xlim=c(-0.5,1.5),n=1001)
+```
+
+### b)
+
+$$P[0.2 < X < 0.8] = \int_{0.2}^{0.8}f(x)dx$$
+
+```{r fig2, fig.align='center',out.width="80%"}
+curve(fx,n=10001,from=-0.5,to=1.5, main="P[0.2<X<0.8]")
+
+#Para vermos graficamente a área em causa
+points(x = c(0.2,0.8,0.8,0.2),
+       y = c(0,0,fx(0.8),fx(0.2)),
+       pch = 16,
+       col = "red")
+
+pontos<- seq(0.2,0.8,0.01)
+cord.x <- c(0.2,pontos,0.8)
+cord.y <- c(0,fx(pontos),0)
+polygon(cord.x,cord.y,col='gold')
+
+#A probabilidade pedida usando a função **integrate**:
+prob <- integrate(fx, 0.2, 0.8, abs.tol = TRUE)
+prob$value
+```
+
+
+### c)
+
+$$E[X] =\int_{0}^{1}f(x)dx$$
+
+```{r}
+# Para sabermos o consumo médio mensal, calculamos o E(X)
+
+# Temos que criar uma nova função dado que, para calcular o valores esperado, precisamos 
+# de ter o x a multiplicar pela função:
+xf_x <- function(x){(x< 0)*0 +(0<=x & x<=1)*(x*(3*(1-x)^2))+(x>1)*0}
+
+
+# Depois disto podemos calcular o integral da nova função para ter o valor esperado:
+E_X=integrate(xf_x, 0, 1)
+round(E_X$value, 4)
+```
+
+> Logo o consumo médio mensal é de **`r E_X$value`** milhões de litros de combustível.

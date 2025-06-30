@@ -1,0 +1,190 @@
+---
+title: 'TPC 2: Probabilidades - Turma 1'
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### André Filipe Gomes Silvestre Nº104532 CDB1
+
+---
+
+## Exercício
+
+O *cutefish* existente numa certa barragem é identificado por 60% de *cutefish* dourado e 40% de *cutefish* prateado. Da experiência passada, sabe-se que 80% de *cutefish* dourado nessa barragem tem peso inferior ao estabelecido nos regulamentos de pesca desportiva, enquanto que, no *cutefish* prateado, esse valor é de 30%.
+
+1. Qual a proporção, naquela barragem, de *cutefish* com peso inferior ao regulamentado?
+
+2. Foi capturado um *cutefish* com peso inferior ao regulamentado. Qual a probabilidade de ser do tipo *cutefish* dourado?
+
+3. Qual a probabilidade de um *cutefish* capturado ser dourado e ter peso nos parâmetros desejados para a pesca desportiva?
+
+4. Considere a experiência que consiste em capturar 5 *cutefish* (não interessa a subespécie, dourado ou prateado) e registar para cada um se tem ou não peso inferior ao regulamentado.
+
+   4.1. Represente, através de um dataframe adequado, o espaço de resultados associado a esta experiência, com as probabilidades associadas (espaço de probabilidades).
+
+   4.2 Explicite a partir do dataframe construído, o acontecimento A – pelo menos 3 (dos 5) *cutefish* têm peso inferior ao regulamentado. Calcule a respetiva probabilidade de ocorrência.
+  
+---
+
+\newpage
+
+### 1. Resolução
+
+Segundo o referido no enunciado, podemos extrair que:
+
+- O acontecimento **`CD`** ($A_1$) - ser capturado um *cutefish* dourado tem probabilidade de 60% -> `P[CD]=0,6`
+- O acontecimento **`CP`** ($A_2$) - ser capturado um *cutefish* prateado tem probabilidade de 40% -> `P[CP]=0,4`
+
+e considerando **`PIR`** ($B$) como o acontecimento "ser capturado um *cutefish* com peso inferior ao regulamentado"
+
+- `P[PIR | CD] = 0,8` ->  80% de *cutefish* dourado nessa barragem tem peso inferior ao estabelecido nos regulamentos de pesca desportiva
+- `P[PIR | CP] = 0,3` ->  30% de *cutefish* prateados nessa barragem tem peso inferior ao estabelecido nos regulamentos de pesca desportiva
+
+Como um peixe não pode ser ao mesmo tempo dourado e prateado, i.e., $A_1 \cap A2 = \ $, e $P[CD] + P[CP] = 0.6 + 0.4 = 1 = P[\Omega]$, então $CD$ e $CP$ formam uma **partição do universo**.
+
+Podemos aplicar o **Teorema da Probabilidade Total**,
+
+$$P\left[B\right]=\sum_{i=1}^{n}{P\left[B\middle| A_i\right]\times P\left[A_i\right]}=\ \sum_{i=1}^{n}P\left[{B\cap A}_i\right]$$
+
+Logo, a proporção, naquela barragem, de *cutefish* com peso inferior ao regulamentado, isto equivale a dizer: "probabilidade de ser capturado um *cutefish* com peso inferior ao regulamentado" ($P[PIR]$) é dada por:
+
+```{r message=FALSE, warning=FALSE}
+library(tidyverse) # EXTRA (apenas para visualizar algumas linhas e não todas)
+
+P_CD <- 0.6
+P_CP <- 0.4
+
+P_PIR_sabendo_CD <- 0.8
+P_PIR_sabendo_CP <- 0.3
+
+# Pela Teoria da Probabilidade Total
+P_PIR <- P_CD*P_PIR_sabendo_CD + P_CP*P_PIR_sabendo_CP
+P_PIR
+```
+
+> $\therefore \; P[B] = P[PIR] = 0.6$
+
+Daqui podemos ainda inferir que a probabilidade do **conjugado de `PIR`** ($\overline B$), ou seja, a probabilidade de ser capturado um *cutefish* com peso nos parâmetros desejados para a pesca desportiva é de `r 1 - P_CD `.
+
+> $\therefore \; P[\overline B] = P[\overline{PIR}] = 0.4$
+
+---
+
+### 2. Resolução
+
+Sabendo que foi capturado um *cutefish* com peso inferior ao regulamentado, a probabilidade de ser do tipo *cutefish* dourado é dada por $P[\;CD\; | \;PIR\;]$
+
+Podemos aplicar a **Fórmula de Bayes**,
+
+$$P\left[A_j|B\right]=\frac{P\left[B\middle| A_j\right]\times P\left[A_i\right]}{\sum_{i=1}^{n}{P\left[B\middle| A_i\right]\times P\left[A_i\right]}}\ =\ \frac{P\left[B\cap A_j\right]}{P\left[B\right]}$$
+
+
+```{r}
+# Pela fórmula da Probabilidade Condicionada
+P_CD_e_PIR <- P_PIR_sabendo_CD * P_CD
+
+P_CD_sabendo_PIR <- P_CD_e_PIR / P_PIR
+P_CD_sabendo_PIR
+```
+
+> $\therefore \; P[CD | PIR] = `r P_CD_sabendo_PIR`$
+
+---
+
+### 3. Resolução
+
+A probabilidade de um *cutefish* capturado ser dourado e ter peso nos parâmetros desejados para a pesca desportiva é simbólicamente dada por P[CD $\cap$ $\overline P \overline I \overline R$]
+
+Logo, e segundo o teorema:
+
+P[A] = P[A $\cap$ B] + P[A $\cap$ $\overline B$]
+
+```{r}
+P_CD_e_não_PIR <- P_CD - P_CD_e_PIR
+P_CD_e_não_PIR
+```
+
+> $\therefore \; P[CD | \overline{PIR}] = `r P_CD_e_não_PIR`$
+
+---
+
+\newpage
+
+### 4. Resolução
+
+Considere a experiência que consiste em capturar 5 *cutefish* (não interessa a subespécie, dourado ou prateado) e registar para cada um se tem ou não peso inferior ao regulamentado, sabe-se que:
+
+Os resultados possíveis para a captura são: 
+
+- $PIR$ (Peso Inferior ao Regulamentado) **OU** $\overline P \overline I \overline R$ (`PNIR` - Peso não Inferior ao Regulamentado).
+
+###  4.1.
+  
+Então o espaço de resultados ($\Omega$) corresponde às combinações possíveis da captura de 5 *cutefish* é dado por:
+
+```{r}
+peso <-c('PIR','PNIR')
+peso
+
+# Espaço de Resultados
+esp_de_resultados <- expand.grid(peso,peso,peso,peso,peso)
+#esp_de_resultados
+```
+
+Considerando que as probabilidades a usar são:
+
+- `P[PIR] = 0,6`
+- `P[`$\overline P \overline I \overline R$`] = P[PNIR] = 0,4`
+
+
+```{r}
+# Espaço de Probabilidades
+peso_prob <- c(0.6,0.4)
+esp_p <- expand.grid(peso_prob,peso_prob,peso_prob,peso_prob,peso_prob)
+
+probs <- esp_p$Var1 * esp_p$Var2 * esp_p$Var3 * esp_p$Var4 * esp_p$Var5
+
+# OU Aplica-se a função prod (produto dos elementos), em linha (1)
+#   esp_de_probabilidades$probs<-apply(prob_5peixe,1,prod)
+
+esp_de_probabilidades <- data.frame(esp_de_resultados, probs)
+as_tibble(esp_de_probabilidades)
+```
+
+
+\newpage
+
+### 4.2.
+
+Seja o acontecimento **A** *"pelo menos 3 (dos 5) cutefish têm peso inferior ao regulamentado"*, ou seja, serem capturados 3,4 ou 5 *cutefish* com peso inferior ao regulamentado", a probabilidade de ocorrência é dada por:
+
+```{r}
+# Para facilitar o cálculo de casos favoráveis, criei um data.frame com 0 e 1, 
+# correspondente ao PIR e PNIR, respetivamente
+
+#    O peso é inferior ao regulamentado (1),
+# OU O peso não é inferior ao regulamentado (0).
+
+peso_cod <-c(0,1)
+esp_de_probabilidades_cod <- data.frame(expand.grid(peso_cod,peso_cod,peso_cod,
+                                                    peso_cod,peso_cod), probs)
+
+# Assim, para que `A` ocorra, a soma da captura dos cutefish tem de ser inferior
+#ou igual a 2  
+soma <- esp_de_probabilidades_cod$Var1 + esp_de_probabilidades_cod$Var2 + 
+  esp_de_probabilidades_cod$Var3 + esp_de_probabilidades_cod$Var4 + 
+  esp_de_probabilidades_cod$Var5
+soma_df <- data.frame(esp_de_probabilidades_cod, soma)
+
+# Probabilidade do acontecimento A
+quais_A <- which(soma_df$soma <= 2)
+
+acontecimento_A <- soma_df[quais_A,]
+acontecimento_A
+
+p_de_A <- sum(acontecimento_A$probs)
+p_de_A
+```
